@@ -235,6 +235,7 @@ public class ServiceDiscoveryRegistry extends FailbackRegistry {
         if (!shouldRegister(url)) { // Should Not Register
             return;
         }
+        // 关键 执行注册的方法
         super.register(url);
     }
 

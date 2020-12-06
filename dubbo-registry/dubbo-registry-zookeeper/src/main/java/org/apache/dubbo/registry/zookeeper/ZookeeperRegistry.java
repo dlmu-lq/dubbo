@@ -126,6 +126,9 @@ public class ZookeeperRegistry extends FailbackRegistry {
     @Override
     public void doRegister(URL url) {
         try {
+            // 关键 2.7.x 创建节点，当前master分支已经使用服务自省的ServiceDiscovery一套进行服务注册和发现
+            // 形如：/dubbo/org.apache.dubbo.demo.DemoService/providers/dubbo%3A%2F%2F172.20.96.77%3A20880%2Forg.apache.dubbo.demo.DemoService%3Fanyhost%3Dtrue%26application%3Ddemo-provider%26deprecated%3Dfalse%26dubbo%3D2.0.2%26dynamic%3Dtrue%26generic%3Dfalse%26interface%3Dorg.apache.dubbo.demo.DemoService%26metadata-type%3Dremote%26methods%3DsayHello%2CsayHelloAsync%26pid%3D72673%26release%3D%26side%3Dprovider%26timestamp%3D1607241878971
+            // /dubbo/org.apache.dubbo.demo.DemoService/consumers/consumer%3A%2F%2F172.20.96.77%2Forg.apache.dubbo.demo.DemoService%3Fapplication%3Ddemo-consumer%26category%3Dconsumers%26check%3Dfalse%26dubbo%3D2.0.2%26init%3Dfalse%26interface%3Dorg.apache.dubbo.demo.DemoService%26methods%3DsayHello%2CsayHelloAsync%26pid%3D73364%26qos.port%3D33333%26side%3Dconsumer%26sticky%3Dfalse%26timestamp%3D1607243907076
             zkClient.create(toUrlPath(url), url.getParameter(DYNAMIC_KEY, true));
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);

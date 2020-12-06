@@ -236,7 +236,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         removeFailedRegistered(url);
         removeFailedUnregistered(url);
         try {
-            // Sending a registration request to the server side
+            // Sending a registration request to the server side 关键 ZookeeperRegistry
             doRegister(url);
         } catch (Exception e) {
             Throwable t = e;
@@ -330,6 +330,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         removeFailedSubscribed(url, listener);
         try {
             // Sending a subscription request to the server side
+            // 关键 交给具体的注册中心实现用于订阅
             doSubscribe(url, listener);
         } catch (Exception e) {
             Throwable t = e;

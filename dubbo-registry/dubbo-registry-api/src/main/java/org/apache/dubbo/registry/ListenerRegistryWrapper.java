@@ -54,6 +54,7 @@ public class ListenerRegistryWrapper implements Registry {
     @Override
     public void register(URL url) {
         try {
+            // 关键 包装一层监听事件回调调用
             registry.register(url);
         } finally {
             if (CollectionUtils.isNotEmpty(listeners)) {

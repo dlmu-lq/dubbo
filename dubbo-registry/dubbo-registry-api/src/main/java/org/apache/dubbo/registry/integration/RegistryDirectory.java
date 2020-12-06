@@ -182,6 +182,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         setConsumerUrl(url);
         CONSUMER_CONFIGURATION_LISTENER.addNotifyListener(this);
         serviceConfigurationListener = new ReferenceConfigurationListener(this, url);
+        // 关键，世纪订阅操作
         registry.subscribe(url, this);
     }
 

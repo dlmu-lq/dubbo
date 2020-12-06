@@ -310,6 +310,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     private T createProxy(Map<String, String> map) {
         if (shouldJvmRefer(map)) {
+            // 关键 injvm协议
             URL url = new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
             invoker = REF_PROTOCOL.refer(interfaceClass, url);
             if (logger.isInfoEnabled()) {
@@ -317,6 +318,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             }
         } else {
             urls.clear();
+            // 关键 直连
             if (url != null && url.length() > 0) { // user specified URL, could be peer-to-peer address, or register center's address.
                 String[] us = SEMICOLON_SPLIT_PATTERN.split(url);
                 if (us != null && us.length > 0) {
@@ -336,6 +338,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                 // if protocols not injvm checkRegistry
                 if (!LOCAL_PROTOCOL.equalsIgnoreCase(getProtocol())) {
                     checkRegistry();
+                    // 关键 注册中心地址
                     List<URL> us = ConfigValidationUtils.loadRegistries(this, false);
                     if (CollectionUtils.isNotEmpty(us)) {
                         for (URL u : us) {
@@ -343,6 +346,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                             if (monitorUrl != null) {
                                 map.put(MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
                             }
+                            // 关键 这个urls里放的是registry://
                             urls.add(u.addParameterAndEncoded(REFER_KEY, StringUtils.toQueryString(map)));
                         }
                     }
@@ -352,9 +356,12 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                 }
             }
 
+            // 关键 远程服务引用
             if (urls.size() == 1) {
+                // 关键
                 invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
             } else {
+                // 关键，多注册中心，多次引用，搞哥集群容错
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {

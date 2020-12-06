@@ -829,7 +829,7 @@ public class DubboBootstrap extends GenericEventListener {
             if (!isOnlyRegisterProvider() || hasExportedServices()) {
                 // 2. export MetadataService
                 exportMetadataService();
-                //3. Register the local ServiceInstance if required
+                //3. Register the local ServiceInstance if required 关键，注册到远程注册中心
                 registerServiceInstance();
             }
 
@@ -1101,6 +1101,7 @@ public class DubboBootstrap extends GenericEventListener {
 
         ServiceInstance serviceInstance = createServiceInstance(serviceName, host, port);
 
+        // 关键，注册到远程注册中心
         preRegisterServiceInstance(serviceInstance);
 
         getServiceDiscoveries().forEach(serviceDiscovery -> serviceDiscovery.register(serviceInstance));

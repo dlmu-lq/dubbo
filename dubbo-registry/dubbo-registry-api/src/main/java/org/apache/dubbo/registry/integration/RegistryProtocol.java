@@ -174,7 +174,9 @@ public class RegistryProtocol implements Protocol {
     }
 
     private void register(URL registryUrl, URL registeredProviderUrl) {
+        // 关键 SPI获得注册Registry，如ZookeeperRegistry
         Registry registry = registryFactory.getRegistry(registryUrl);
+        // 关键，形如：dubbo://172.20.96.77:20880/org.apache.dubbo.demo.GreetingService?anyhost=true&application=demo-provider&deprecated=false&dubbo=2.0.2&dynamic=true&generic=false&group=greeting&interface=org.apache.dubbo.demo.GreetingService&mapping-type=metadata&mapping.type=metadata&metadata-type=remote&methods=hello&pid=71191&release=&revision=1.0.0&side=provider&timeout=5000&timestamp=1607239037910&version=1.0.0
         registry.register(registeredProviderUrl);
     }
 
@@ -201,7 +203,7 @@ public class RegistryProtocol implements Protocol {
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
 
         providerUrl = overrideUrlWithConfig(providerUrl, overrideSubscribeListener);
-        //export invoker
+        //export invoker 关键 在这里调用DubboProtocol
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
 
         // url to registry
@@ -211,6 +213,7 @@ public class RegistryProtocol implements Protocol {
         // decide if we need to delay publish
         boolean register = providerUrl.getParameter(REGISTER_KEY, true);
         if (register) {
+            // 关键 注册到注册中心
             register(registryUrl, registeredProviderUrl);
         }
 
@@ -248,10 +251,12 @@ public class RegistryProtocol implements Protocol {
 
     @SuppressWarnings("unchecked")
     private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker, URL providerUrl) {
+        // todo 干什么用
         String key = getCacheKey(originInvoker);
 
         return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
             Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
+            // 关键 具体暴露协议export，如DubboProtocol
             return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);
         });
     }
@@ -436,6 +441,7 @@ public class RegistryProtocol implements Protocol {
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         url = getRegistryUrl(url);
+        // 关键，根据注册中心类型，找到registry，如ZookeeperRegistry
         Registry registry = registryFactory.getRegistry(url);
         if (RegistryService.class.equals(type)) {
             return proxyFactory.getInvoker((T) registry, type, url);
@@ -451,6 +457,7 @@ public class RegistryProtocol implements Protocol {
         }
 
         Cluster cluster = Cluster.getCluster(qs.get(CLUSTER_KEY));
+        // 关键
         return doRefer(cluster, registry, type, url);
     }
 
@@ -460,12 +467,15 @@ public class RegistryProtocol implements Protocol {
         directory.setProtocol(protocol);
         // all attributes of REFER_KEY
         Map<String, String> parameters = new HashMap<String, String>(directory.getConsumerUrl().getParameters());
+        // 关键 获得订阅url
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (directory.isShouldRegister()) {
             directory.setRegisteredConsumerUrl(subscribeUrl);
+            // 关键 做为消费者注册上去
             registry.register(directory.getRegisteredConsumerUrl());
         }
         directory.buildRouterChain(subscribeUrl);
+        // 关键 订阅操作，用于通知监听
         directory.subscribe(toSubscribeUrl(subscribeUrl));
 
         Invoker<T> invoker = cluster.join(directory);
