@@ -478,6 +478,7 @@ public class RegistryProtocol implements Protocol {
         // 关键 订阅操作，用于通知监听
         directory.subscribe(toSubscribeUrl(subscribeUrl));
 
+        // 怎么获得的invoker
         Invoker<T> invoker = cluster.join(directory);
         List<RegistryProtocolListener> listeners = findRegistryProtocolListeners(url);
         if (CollectionUtils.isEmpty(listeners)) {

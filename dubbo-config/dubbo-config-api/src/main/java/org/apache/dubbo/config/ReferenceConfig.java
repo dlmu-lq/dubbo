@@ -361,7 +361,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                 // 关键
                 invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
             } else {
-                // 关键，多注册中心，多次引用，搞哥集群容错
+                // 关键，多注册中心，多次引用，搞集群容错
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {
