@@ -176,11 +176,13 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.computeIfAbsent(url, k -> new ConcurrentHashMap<>());
                     ChildListener zkListener = listeners.computeIfAbsent(listener, k -> (parentPath, currentChilds) -> ZookeeperRegistry.this.notify(url, k, toUrlsWithEmpty(url, parentPath, currentChilds)));
                     zkClient.create(path, false);
+                    // 关键， 添加监听，并返回
                     List<String> children = zkClient.addChildListener(path, zkListener);
                     if (children != null) {
                         urls.addAll(toUrlsWithEmpty(url, path, children));
                     }
                 }
+                // 关键 走一遍通知，将
                 notify(url, listener, urls);
             }
         } catch (Throwable e) {
