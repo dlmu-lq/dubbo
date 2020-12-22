@@ -38,6 +38,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.SERVICE_FILTER_K
 
 /**
  * ListenerProtocol
+ * 关键 Protocol$Adaptive -> QosProtocolWrapper -> ProtocolFilterWrapper
  */
 @Activate(order = 100)
 public class ProtocolFilterWrapper implements Protocol {
@@ -80,6 +81,8 @@ public class ProtocolFilterWrapper implements Protocol {
                     public Result invoke(Invocation invocation) throws RpcException {
                         Result asyncResult;
                         try {
+                            // 关键 类似java ee 中的Fitler调用
+                            // 内部 return invoker.invoke(rpcInvocation);
                             asyncResult = filter.invoke(next, invocation);
                         } catch (Exception e) {
                             if (filter instanceof ListenableFilter) {
