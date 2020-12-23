@@ -589,6 +589,7 @@ public class DubboProtocol extends AbstractProtocol {
                 client = new LazyConnectExchangeClient(url, requestHandler);
 
             } else {
+                // 关键 创建连接客户端
                 client = Exchangers.connect(url, requestHandler);
             }
 

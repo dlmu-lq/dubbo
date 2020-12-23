@@ -57,8 +57,12 @@ public class AllChannelHandler extends WrappedChannelHandler {
 
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        // 关键，通过request id保证同一个rpc请求在一个线程中处理
+        // 关键，此处的message已经经过解码(request/response)，或解码为Decodeable，再由后面的DecodeHandler进行解码，为什么没有debug到这里
         ExecutorService executor = getPreferredExecutorService(message);
         try {
+            // 关键，从这里之前在netty线程中执行，之后，被dispatcher到线程池中执行
+            // 关键，封装ChannelEventRunnable任务，开始调用handler链条
             executor.execute(new ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));
         } catch (Throwable t) {
         	if(message instanceof Request && t instanceof RejectedExecutionException){
