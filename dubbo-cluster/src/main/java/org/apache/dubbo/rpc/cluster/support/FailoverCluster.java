@@ -30,6 +30,7 @@ public class FailoverCluster extends AbstractCluster {
 
     @Override
     public <T> AbstractClusterInvoker<T> doJoin(Directory<T> directory) throws RpcException {
+        // 关键，Cluster Invoker是一种Invoker，由Cluster产生，Cluster主要为了创建Invoker对象，
         return new FailoverClusterInvoker<>(directory);
     }
 

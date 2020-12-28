@@ -56,25 +56,31 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Result doInvoke(Invocation invocation, final List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
         List<Invoker<T>> copyInvokers = invokers;
+        // 关键 常见的找不到提供者的异常抛出位置
         checkInvokers(copyInvokers, invocation);
         String methodName = RpcUtils.getMethodName(invocation);
+        // 关键 URL配置的重试次数 + 1，用于for循环
         int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
         if (len <= 0) {
             len = 1;
         }
         // retry loop.
         RpcException le = null; // last exception.
+        // 关键，选过的不再优先选了
         List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.
         Set<String> providers = new HashSet<String>(len);
+        // 关键 重试循环
         for (int i = 0; i < len; i++) {
             //Reselect before retry to avoid a change of candidate `invokers`.
             //NOTE: if `invokers` changed, then `invoked` also lose accuracy.
             if (i > 0) {
+                // 关键，重试时重新列举，过滤有调用期间挂掉的服务
                 checkWhetherDestroyed();
                 copyInvokers = list(invocation);
                 // check again
                 checkInvokers(copyInvokers, invocation);
             }
+            // 关键，进行invoker的选择
             Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);
             invoked.add(invoker);
             RpcContext.getContext().setInvokers((List) invoked);

@@ -32,6 +32,7 @@ import java.util.List;
 
 import static org.apache.dubbo.common.constants.CommonConstants.REFERENCE_INTERCEPTOR_KEY;
 
+// 关键 封装了集群拦截器 ClusterInterceptor的逻辑
 public abstract class AbstractCluster implements Cluster {
 
     private <T> Invoker<T> buildClusterInterceptors(AbstractClusterInvoker<T> clusterInvoker, String key) {

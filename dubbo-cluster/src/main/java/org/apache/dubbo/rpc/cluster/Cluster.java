@@ -43,6 +43,7 @@ public interface Cluster {
      * @return cluster invoker
      * @throws RpcException
      */
+    // 关键，用于将Directory（持有Invokers）转换为Invoker，Failover/Failfast/Failsave/Forking等
     @Adaptive
     <T> Invoker<T> join(Directory<T> directory) throws RpcException;
 

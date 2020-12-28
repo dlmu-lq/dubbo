@@ -136,7 +136,7 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
             return null;
         }
         String methodName = invocation == null ? StringUtils.EMPTY_STRING : invocation.getMethodName();
-
+        // 关键 sticky参数
         boolean sticky = invokers.get(0).getUrl()
                 .getMethodParameter(methodName, CLUSTER_STICKY_KEY, DEFAULT_CLUSTER_STICKY);
 
@@ -168,9 +168,11 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
         if (invokers.size() == 1) {
             return invokers.get(0);
         }
+        // 关键 负载均衡进行选择
         Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation);
 
         //If the `invoker` is in the  `selected` or invoker is unavailable && availablecheck is true, reselect.
+        // 关键 如果不可用，或属于重试前的不可用的，再进行重选
         if ((selected != null && selected.contains(invoker))
                 || (!invoker.isAvailable() && getUrl() != null && availablecheck)) {
             try {
@@ -178,6 +180,7 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
                 if (rInvoker != null) {
                     invoker = rInvoker;
                 } else {
+                    // 关键 重选选不出来，直接向后移一位
                     //Check the index of current selected invoker, if it's not the last one, choose the one at index+1.
                     int index = invokers.indexOf(invoker);
                     try {
@@ -249,11 +252,12 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
         checkWhetherDestroyed();
 
         // binding attachments into invocation.
+        // 关键 context的attachments
         Map<String, Object> contextAttachments = RpcContext.getContext().getObjectAttachments();
         if (contextAttachments != null && contextAttachments.size() != 0) {
             ((RpcInvocation) invocation).addObjectAttachments(contextAttachments);
         }
-
+        // 关键，列举invokers
         List<Invoker<T>> invokers = list(invocation);
         LoadBalance loadbalance = initLoadBalance(invokers, invocation);
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
